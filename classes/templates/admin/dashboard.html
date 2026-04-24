@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"/>Admin Dashboard - Food Ordering System</title>
+<link rel="stylesheet" th:href="@{/css/style.css}"/></head>
+<body>
+<nav class="navbar">
+  <a href="/admin/dashboard" class="navbar-brand">Food Ordering System Admin</a>
+  <ul class="nav-links">
+    <li><a href="/admin/dashboard" class="active">Dashboard</a></li>
+    <li><a href="/admin/orders">Orders</a></li>
+    <li><a href="/admin/users">Users</a></li>
+    <li><a href="/admin/restaurants">Restaurants</a></li>
+    <li><a href="/admin/refunds">Refunds</a></li>
+  </ul>
+  <form th:action="@{/auth/logout}" method="post">
+    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+    <button type="submit" class="logout-btn">Logout</button>
+  </form>
+</nav>
+<div class="page-wrapper">
+  <div class="page-header">
+    <h1 class="page-title">Admin Dashboard</h1>
+    <p class="page-subtitle">System Overview</p>
+  </div>
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon blue">&#128100;</div>
+      <div><div class="stat-value" th:text="${totalUsers}">0</div><div class="stat-label">Total Users</div></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon orange">&#127968;</div>
+      <div><div class="stat-value" th:text="${totalRestaurants}">0</div><div class="stat-label">Restaurants</div></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon green">&#128100;</div>
+      <div><div class="stat-value" th:text="${totalCustomers}">0</div><div class="stat-label">Customers</div></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon red">&#128722;</div>
+      <div><div class="stat-value" th:text="${totalOrders}">0</div><div class="stat-label">Total Orders</div></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header">Recent Orders <a href="/admin/orders" class="btn btn-outline btn-sm">View All</a></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Order #</th><th>Customer</th><th>Restaurant</th><th>Amount</th><th>Date</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr th:each="order : ${recentOrders}">
+            <td>#<span th:text="${order.orderId}"></span></td>
+            <td th:text="${order.customer.name}"></td>
+            <td th:text="${order.restaurant.restaurantName}"></td>
+            <td style="color:var(--accent);font-weight:600;">Rs.<span th:text="${#numbers.formatDecimal(order.totalAmount,1,2)}"></span></td>
+            <td style="font-size:0.82rem;" th:text="${#temporals.format(order.orderDate,'dd MMM yyyy')}"></td>
+            <td><span class="badge" th:classappend="'badge-' + ${#strings.toLowerCase(order.status)}" th:text="${order.status}"></span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+</body>
+</html>

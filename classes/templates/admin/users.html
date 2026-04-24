@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"/><title>Users - Admin</title>
+<link rel="stylesheet" th:href="@{/css/style.css}"/></head>
+<body>
+<nav class="navbar">
+  <a href="/admin/dashboard" class="navbar-brand">Food Ordering System Admin</a>
+  <ul class="nav-links">
+    <li><a href="/admin/dashboard">Dashboard</a></li>
+    <li><a href="/admin/orders">Orders</a></li>
+    <li><a href="/admin/users" class="active">Users</a></li>
+    <li><a href="/admin/restaurants">Restaurants</a></li>
+    <li><a href="/admin/refunds">Refunds</a></li>
+  </ul>
+  <form th:action="@{/auth/logout}" method="post">
+    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+    <button type="submit" class="logout-btn">Logout</button>
+  </form>
+</nav>
+<div class="page-wrapper">
+  <div class="page-header"><h1 class="page-title">User Management</h1></div>
+  <h2 style="font-family:'Playfair Display',serif;font-size:1.3rem;margin-bottom:1rem;">Customers (<span th:text="${#lists.size(customers)}"></span>)</h2>
+  <div class="card" style="margin-bottom:2rem;">
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Phone</th><th>Address</th></tr></thead>
+        <tbody>
+          <tr th:each="c : ${customers}">
+            <td th:text="${c.userId}"></td>
+            <td th:text="${c.name}"></td>
+            <td th:text="${c.email}"></td>
+            <td th:text="${c.phone}"></td>
+            <td style="font-size:0.82rem;color:var(--text-muted);" th:text="${c.address}"></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <h2 style="font-family:'Playfair Display',serif;font-size:1.3rem;margin-bottom:1rem;">Delivery Personnel (<span th:text="${#lists.size(deliveryPersons)}"></span>)</h2>
+  <div class="card">
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Vehicle No</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr th:each="dp : ${deliveryPersons}">
+            <td th:text="${dp.userId}"></td>
+            <td th:text="${dp.name}"></td>
+            <td th:text="${dp.email}"></td>
+            <td th:text="${dp.vehicleNo}"></td>
+            <td><span class="badge badge-confirmed" th:text="${dp.deliveryStatus}"></span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+</body>
+</html>

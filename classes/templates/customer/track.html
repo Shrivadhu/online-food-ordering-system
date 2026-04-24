@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"/><title>Track Order - Food Ordering System</title>
+<link rel="stylesheet" th:href="@{/css/style.css}"/></head>
+<body>
+<nav class="navbar">
+  <a href="/customer/home" class="navbar-brand">Food Ordering System</a>
+  <ul class="nav-links">
+    <li><a href="/customer/home">Restaurants</a></li>
+    <li><a href="/customer/orders" class="active">My Orders</a></li>
+  </ul>
+  <div style="display:flex;align-items:center;gap:10px;">
+    <a href="/customer/cart" class="cart-badge">Cart <span th:text="${cartCount}">0</span></a>
+    <form th:action="@{/auth/logout}" method="post" style="display:inline;">
+      <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+      <button type="submit" class="logout-btn">Logout</button>
+    </form>
+  </div>
+</nav>
+<div class="page-wrapper">
+  <div class="page-header">
+    <h1 class="page-title">Track Order #<span th:text="${order.orderId}"></span></h1>
+    <p class="page-subtitle" th:text="${order.restaurant.restaurantName}"></p>
+  </div>
+  <div class="layout-split">
+    <div>
+      <div class="card">
+        <div class="card-header">Order Status</div>
+        <div class="card-body">
+          <div class="track-steps">
+            <div class="track-step" th:classappend="${order.status.name() == 'PLACED' || order.status.name() == 'CONFIRMED' || order.status.name() == 'PREPARED' || order.status.name() == 'OUT_OF_DELIVERY' || order.status.name() == 'DELIVERED'} ? 'done' : ''">
+              <div class="step-dot">&#10003;</div>
+              <div class="step-info"><div class="step-title">Order Placed</div><div class="step-desc">Your order has been received</div></div>
+            </div>
+            <div class="track-step" th:classappend="${order.status.name() == 'CONFIRMED' || order.status.name() == 'PREPARED' || order.status.name() == 'OUT_OF_DELIVERY' || order.status.name() == 'DELIVERED'} ? 'done' : (${order.status.name() == 'PLACED'} ? 'active' : '')">
+              <div class="step-dot">&#128293;</div>
+              <div class="step-info"><div class="step-title">Confirmed</div><div class="step-desc">Restaurant accepted your order</div></div>
+            </div>
+            <div class="track-step" th:classappend="${order.status.name() == 'PREPARED' || order.status.name() == 'OUT_OF_DELIVERY' || order.status.name() == 'DELIVERED'} ? 'done' : (${order.status.name() == 'CONFIRMED'} ? 'active' : '')">
+              <div class="step-dot">&#127859;</div>
+              <div class="step-info"><div class="step-title">Food Ready</div><div class="step-desc">Your food is being prepared</div></div>
+            </div>
+            <div class="track-step" th:classappend="${order.status.name() == 'OUT_OF_DELIVERY' || order.status.name() == 'DELIVERED'} ? 'done' : (${order.status.name() == 'PREPARED'} ? 'active' : '')">
+              <div class="step-dot">&#128665;</div>
+              <div class="step-info"><div class="step-title">Out for Delivery</div><div class="step-desc">Delivery partner on the way</div></div>
+            </div>
+            <div class="track-step" th:classappend="${order.status.name() == 'DELIVERED'} ? 'done' : (${order.status.name() == 'OUT_OF_DELIVERY'} ? 'active' : '')">
+              <div class="step-dot">&#127881;</div>
+              <div class="step-info"><div class="step-title">Delivered</div><div class="step-desc">Enjoy your meal!</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <div class="card-header">Order Details</div>
+        <div class="card-body">
+          <div th:each="item : ${order.items}" style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);">
+            <span th:text="${item.foodItem.name}">Item</span>
+            <span style="color:var(--text-muted);">x<span th:text="${item.quantity}">1</span></span>
+            <span style="color:var(--accent);font-weight:600;">Rs.<span th:text="${item.calculatePrice()}">0</span></span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-weight:700;margin-top:12px;font-size:1.1rem;">
+            <span>Total</span>
+            <span style="color:var(--accent);">Rs.<span th:text="${#numbers.formatDecimal(order.totalAmount,1,2)}">0</span></span>
+          </div>
+          <div style="margin-top:1.2rem;padding:1rem;background:rgba(255,255,255,0.04);border-radius:10px;font-size:0.85rem;">
+            <div style="color:var(--text-muted);margin-bottom:6px;">Delivery Address</div>
+            <div th:text="${order.deliveryAddress}">Address</div>
+          </div>
+          <div th:if="${order.deliveryPerson != null}" style="margin-top:1rem;padding:1rem;background:rgba(45,206,137,0.08);border:1px solid rgba(45,206,137,0.2);border-radius:10px;font-size:0.85rem;">
+            <div style="color:var(--success);font-weight:600;margin-bottom:4px;">Delivery Partner</div>
+            <div th:text="${order.deliveryPerson.name}">Name</div>
+            <div style="color:var(--text-muted);" th:text="${order.deliveryPerson.vehicleNo}">Vehicle</div>
+          </div>
+        </div>
+      </div>
+      <a href="/customer/orders" class="btn btn-outline btn-block" style="margin-top:1rem;">Back to Orders</a>
+    </div>
+  </div>
+</div>
+</body>
+</html>

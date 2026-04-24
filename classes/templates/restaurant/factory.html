@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"/><title>FoodFactory Portal - Food Ordering System</title>
+<link rel="stylesheet" th:href="@{/css/style.css}"/>
+<style>
+  .pattern-badge { display:inline-block; padding:3px 10px; border-radius:20px; font-size:0.72rem; font-weight:700; letter-spacing:.5px; text-transform:uppercase; margin-left:8px; }
+  .badge-factory  { background:#fff3cd; color:#856404; }
+  .badge-proto    { background:#d1ecf1; color:#0c5460; }
+  .factory-grid   { display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; }
+  @media(max-width:768px){ .factory-grid{ grid-template-columns:1fr; } }
+  .pattern-card   { border:2px solid var(--border); border-radius:12px; padding:1.5rem; background:var(--card-bg); }
+  .pattern-card.factory-card { border-color:#ffc107; }
+  .pattern-card.proto-card   { border-color:#17a2b8; }
+  .pattern-title  { font-size:1.1rem; font-weight:700; margin-bottom:.3rem; display:flex; align-items:center; gap:8px; }
+  .pattern-desc   { font-size:.82rem; color:var(--text-muted); margin-bottom:1.2rem; }
+  .clone-btn { background:#17a2b8; color:#fff; border:none; padding:4px 12px; border-radius:6px; cursor:pointer; font-size:.8rem; }
+  .clone-btn:hover { background:#138496; }
+  .edit-btn { background:var(--btn-secondary,#6c757d); color:#fff; border:none; padding:4px 10px; border-radius:6px; cursor:pointer; font-size:.8rem; }
+</style>
+</head>
+<body>
+<nav class="navbar">
+  <a href="/restaurant/dashboard" class="navbar-brand">Food Ordering System</a>
+  <ul class="nav-links">
+    <li><a href="/restaurant/dashboard">Dashboard</a></li>
+    <li><a href="/restaurant/orders">Orders</a></li>
+    <li><a href="/restaurant/menu">Menu</a></li>
+    <li><a href="/restaurant/factory" class="active">&#127981; FoodFactory</a></li>
+  </ul>
+  <form th:action="@{/auth/logout}" method="post">
+    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+    <button type="submit" class="logout-btn">Logout</button>
+  </form>
+</nav>
+
+<div class="page-wrapper">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">&#127981; FoodFactory Portal</h1>
+      <p class="page-subtitle">Create items via <strong>Factory Pattern</strong> · Clone items via <strong>Prototype Pattern</strong></p>
+    </div>
+    <button class="btn btn-primary" onclick="document.getElementById('createModal').classList.add('open')">
+      + Factory: New Item
+    </button>
+  </div>
+
+  <div th:if="${success}" class="alert alert-success"><span th:text="${success}"></span></div>
+  <div th:if="${error}" class="alert alert-danger"><span th:text="${error}"></span></div>
+
+  <!-- Stats -->
+  <div class="stats-grid" style="margin-bottom:1.5rem;">
+    <div class="stat-card">
+      <div class="stat-icon" style="background:#e8f5e9;color:#28a745;">&#129382;</div>
+      <div><div class="stat-value" th:text="${vegCount}">0</div><div class="stat-label">Vegetarian</div></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon" style="background:#fce4ec;color:#dc3545;">&#127831;</div>
+      <div><div class="stat-value" th:text="${nonVegCount}">0</div><div class="stat-label">Non-Veg</div></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon" style="background:#e3f2fd;color:#007bff;">&#129380;</div>
+      <div><div class="stat-value" th:text="${beverageCount}">0</div><div class="stat-label">Beverages</div></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon" style="background:#fff3e0;color:#fd7e14;">&#127856;</div>
+      <div><div class="stat-value" th:text="${dessertCount}">0</div><div class="stat-label">Desserts</div></div>
+    </div>
+  </div>
+
+  <!-- Pattern Info Cards -->
+  <div class="factory-grid" style="margin-bottom:1.5rem;">
+    <div class="pattern-card factory-card">
+      <div class="pattern-title">&#9881;&#65039; Factory Pattern <span class="pattern-badge badge-factory">Creational</span></div>
+      <div class="pattern-desc">Creates FoodItem objects by TYPE. Each type (VEG, NON_VEG, BEVERAGE, DESSERT) auto-sets category and image. Click <strong>"+ Factory: New Item"</strong> above to use this pattern.</div>
+    </div>
+    <div class="pattern-card proto-card">
+      <div class="pattern-title">&#128260; Prototype Pattern <span class="pattern-badge badge-proto">Creational</span></div>
+      <div class="pattern-desc">Clone an existing food item as a template. Copies category, description &amp; image — just update name and price. Click <strong>"&#128260; Clone"</strong> on any row below to use this pattern.</div>
+    </div>
+  </div>
+
+  <!-- Food Items Table -->
+  <div class="card">
+    <div class="card-header">
+      <span>All Food Items
+        <span th:if="${allItems != null}" style="color:var(--text-muted);font-weight:400;font-size:.9rem;"
+              th:text="'(' + ${allItems.size()} + ' items)'"></span>
+      </span>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Category</th>
+            <th>Price</th>
+            <th>Menu</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr th:each="item : ${allItems}">
+            <td th:text="${item.name}">Item</td>
+            <td>
+              <span class="badge"
+                th:classappend="${item.category == 'Vegetarian' ? 'badge-delivered' :
+                                  item.category == 'Non-Vegetarian' ? 'badge-cancelled' :
+                                  item.category == 'Beverage' ? 'badge-out' : 'badge-warning'}"
+                th:text="${item.category}">Cat</span>
+            </td>
+            <td style="color:var(--accent);font-weight:600;">Rs.<span th:text="${item.price}"></span></td>
+            <td th:text="${item.menu != null ? item.menu.menuName : '-'}">Menu</td>
+            <td>
+              <span class="badge"
+                    th:classappend="${item.available ? 'badge-delivered' : 'badge-cancelled'}"
+                    th:text="${item.available ? 'Available' : 'Unavailable'}"></span>
+            </td>
+            <td>
+              <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+                <!-- Clone button - passes data via data attributes, read by JS -->
+                <button class="clone-btn"
+                        th:data-id="${item.foodId}"
+                        th:data-name="${item.name}"
+                        th:data-price="${item.price}"
+                        onclick="openCloneModal(this)">
+                  &#128260; Clone
+                </button>
+                <!-- Edit button -->
+                <button class="edit-btn"
+                        th:data-id="${item.foodId}"
+                        th:data-name="${item.name}"
+                        th:data-price="${item.price}"
+                        th:data-desc="${item.description}"
+                        th:data-available="${item.available}"
+                        onclick="openEditModal(this)">
+                  &#9998; Edit
+                </button>
+                <!-- Delete -->
+                <form th:action="@{/restaurant/factory/delete/{id}(id=${item.foodId})}"
+                      method="post" style="display:inline;"
+                      onsubmit="return confirm('Delete this item?')">
+                  <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                  <button type="submit" class="btn btn-danger btn-sm">&#128465;</button>
+                </form>
+              </div>
+            </td>
+          </tr>
+          <tr th:if="${#lists.isEmpty(allItems)}">
+            <td colspan="6" style="text-align:center;color:var(--text-muted);padding:2rem;">
+              No food items yet. Use the <strong>Factory Pattern</strong> above to create your first item!
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Factory Create Modal -->
+<div class="modal-overlay" id="createModal" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">&#9881;&#65039; Factory Pattern — Create New Item</div>
+      <button class="modal-close" onclick="document.getElementById('createModal').classList.remove('open')">&#x2715;</button>
+    </div>
+    <p style="font-size:.83rem;color:var(--text-muted);margin-bottom:1rem;">
+      Select a <strong>type</strong> — the Factory auto-sets category and image.
+    </p>
+    <form th:action="@{/restaurant/factory/create}" method="post">
+      <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+      <div class="form-group">
+        <label class="form-label">Menu</label>
+        <select name="menuId" class="form-control" required>
+          <option value="" disabled selected>-- Select a Menu --</option>
+          <option th:each="menu : ${menus}" th:value="${menu.menuId}" th:text="${menu.menuName}">Menu</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Type (Factory sets category)</label>
+          <select name="type" class="form-control">
+            <option value="VEG">&#129382; Vegetarian</option>
+            <option value="NON_VEG">&#127831; Non-Vegetarian</option>
+            <option value="BEVERAGE">&#129380; Beverage</option>
+            <option value="DESSERT">&#127856; Dessert</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Price (Rs.)</label>
+          <input type="number" name="price" class="form-control" placeholder="0.00" step="0.01" min="1" required/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Item Name</label>
+        <input type="text" name="name" class="form-control" placeholder="e.g. Paneer Tikka" required/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Description</label>
+        <input type="text" name="description" class="form-control" placeholder="Short description..."/>
+      </div>
+      <button type="submit" class="btn btn-primary" style="width:100%;">&#9881;&#65039; Create via Factory</button>
+    </form>
+  </div>
+</div>
+
+<!-- Prototype Clone Modal -->
+<div class="modal-overlay" id="cloneModal" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">&#128260; Prototype Pattern — Clone Item</div>
+      <button class="modal-close" onclick="document.getElementById('cloneModal').classList.remove('open')">&#x2715;</button>
+    </div>
+    <p style="font-size:.83rem;color:var(--text-muted);margin-bottom:1rem;">
+      Cloning: <strong id="cloneSourceName"></strong> — category, description &amp; image are copied.
+    </p>
+    <form id="cloneForm" method="post">
+      <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+      <div class="form-group">
+        <label class="form-label">New Item Name</label>
+        <input type="text" name="newName" id="cloneNewName" class="form-control" required/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">New Price (Rs.)</label>
+        <input type="number" name="newPrice" id="cloneNewPrice" class="form-control" step="0.01" min="1" required/>
+      </div>
+      <button type="submit" class="btn btn-primary" style="width:100%;background:#17a2b8;border-color:#17a2b8;">
+        &#128260; Clone via Prototype
+      </button>
+    </form>
+  </div>
+</div>
+
+<!-- Edit Modal -->
+<div class="modal-overlay" id="editModal" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">&#9998; Edit Food Item</div>
+      <button class="modal-close" onclick="document.getElementById('editModal').classList.remove('open')">&#x2715;</button>
+    </div>
+    <form id="editForm" method="post">
+      <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+      <div class="form-group">
+        <label class="form-label">Name</label>
+        <input type="text" name="name" id="editName" class="form-control" required/>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Price (Rs.)</label>
+          <input type="number" name="price" id="editPrice" class="form-control" step="0.01" min="1" required/>
+        </div>
+        <div class="form-group" style="display:flex;align-items:center;gap:8px;padding-top:1.8rem;">
+          <input type="checkbox" name="available" id="editAvailable" value="true"/>
+          <label for="editAvailable" style="margin:0;">Available</label>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Description</label>
+        <input type="text" name="description" id="editDescription" class="form-control"/>
+      </div>
+      <button type="submit" class="btn btn-primary" style="width:100%;">Save Changes</button>
+    </form>
+  </div>
+</div>
+
+<script>
+function openCloneModal(btn) {
+  var id = btn.getAttribute('data-id');
+  var name = btn.getAttribute('data-name');
+  var price = btn.getAttribute('data-price');
+  document.getElementById('cloneSourceName').textContent = name;
+  document.getElementById('cloneNewName').value = name + ' (Copy)';
+  document.getElementById('cloneNewPrice').value = price;
+  document.getElementById('cloneForm').action = '/restaurant/factory/clone/' + id;
+  document.getElementById('cloneModal').classList.add('open');
+}
+function openEditModal(btn) {
+  var id = btn.getAttribute('data-id');
+  var name = btn.getAttribute('data-name');
+  var price = btn.getAttribute('data-price');
+  var desc = btn.getAttribute('data-desc');
+  var available = btn.getAttribute('data-available') === 'true';
+  document.getElementById('editName').value = name;
+  document.getElementById('editPrice').value = price;
+  document.getElementById('editDescription').value = desc || '';
+  document.getElementById('editAvailable').checked = available;
+  document.getElementById('editForm').action = '/restaurant/factory/update/' + id;
+  document.getElementById('editModal').classList.add('open');
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"/><title>Refunds - FoodRush Admin</title>
+<link rel="stylesheet" th:href="@{/css/style.css}"/></head>
+<body>
+<nav class="navbar">
+  <a href="/admin/dashboard" class="navbar-brand">FoodRush Admin</a>
+  <ul class="nav-links">
+    <li><a href="/admin/dashboard">Dashboard</a></li>
+    <li><a href="/admin/orders">Orders</a></li>
+    <li><a href="/admin/users">Users</a></li>
+    <li><a href="/admin/restaurants">Restaurants</a></li>
+    <li><a href="/admin/refunds" class="active">Refunds</a></li>
+  </ul>
+  <form th:action="@{/auth/logout}" method="post">
+    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+    <button type="submit" class="logout-btn">Logout</button>
+  </form>
+</nav>
+<div class="page-wrapper">
+  <div class="page-header">
+    <h1 class="page-title">💰 Refund Management</h1>
+    <p class="page-subtitle">All processed refunds. To initiate a refund, go to <a href="/admin/orders" style="color:var(--accent);">Orders</a> and click Refund.</p>
+  </div>
+  <div th:if="${success}" class="alert alert-success"><span th:text="${success}"></span></div>
+  <div th:if="${error}" class="alert alert-danger"><span th:text="${error}"></span></div>
+
+  <div class="card">
+    <div class="card-header">All Refunds</div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Refund ID</th>
+            <th>Order ID</th>
+            <th>Customer</th>
+            <th>Amount</th>
+            <th>Reason</th>
+            <th>Date</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr th:each="refund : ${refunds}">
+            <td>#<span th:text="${refund.refundId}"></span></td>
+            <td>
+              <span th:if="${refund.payment != null and refund.payment.order != null}">
+                #<span th:text="${refund.payment.order.orderId}"></span>
+              </span>
+              <span th:unless="${refund.payment != null and refund.payment.order != null}">-</span>
+            </td>
+            <td>
+              <span th:if="${refund.payment != null and refund.payment.order != null and refund.payment.order.customer != null}"
+                    th:text="${refund.payment.order.customer.name}">Customer</span>
+              <span th:unless="${refund.payment != null and refund.payment.order != null and refund.payment.order.customer != null}">-</span>
+            </td>
+            <td style="color:var(--accent);font-weight:600;">
+              Rs.<span th:text="${#numbers.formatDecimal(refund.refundAmount,1,2)}"></span>
+            </td>
+            <td th:text="${refund.reason != null ? refund.reason : '-'}">Reason</td>
+            <td th:text="${#temporals.format(refund.refundDate,'dd MMM yyyy HH:mm')}">Date</td>
+            <td>
+              <span class="badge badge-cancelled">REFUNDED</span>
+            </td>
+          </tr>
+          <tr th:if="${#lists.isEmpty(refunds)}">
+            <td colspan="7" style="text-align:center;color:var(--text-muted);padding:2rem;">
+              No refunds processed yet. Go to <a href="/admin/orders">Orders</a> to initiate a refund.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+</body>
+</html>

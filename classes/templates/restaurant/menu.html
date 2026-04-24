@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"/><title>Menu Management - Food Ordering System</title>
+<link rel="stylesheet" th:href="@{/css/style.css}"/></head>
+<body>
+<nav class="navbar">
+  <a href="/restaurant/dashboard" class="navbar-brand">Food Ordering System</a>
+  <ul class="nav-links">
+    <li><a href="/restaurant/dashboard">Dashboard</a></li>
+    <li><a href="/restaurant/orders">Orders</a></li>
+    <li><a href="/restaurant/menu" class="active">Menu</a></li>
+  </ul>
+  <form th:action="@{/auth/logout}" method="post">
+    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+    <button type="submit" class="logout-btn">Logout</button>
+  </form>
+</nav>
+<div class="page-wrapper">
+  <div class="page-header">
+    <h1 class="page-title">Menu Management</h1>
+    <button class="btn btn-primary" onclick="document.getElementById('createMenuModal').classList.add('open')">+ New Menu</button>
+  </div>
+  <div th:if="${success}" class="alert alert-success"><span th:text="${success}"></span></div>
+
+  <div th:each="menu : ${menus}">
+    <div class="card" style="margin-bottom:1.5rem;">
+      <div class="card-header">
+        <span th:text="${menu.menuName}">Menu</span>
+        <button class="btn btn-primary btn-sm" th:onclick="|document.getElementById('addItem-${menu.menuId}').classList.add('open')|">+ Add Item</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Name</th><th>Category</th><th>Price</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody>
+            <tr th:each="item : ${menu.foodItems}">
+              <td th:text="${item.name}">Item</td>
+              <td><span class="badge" th:classappend="${item.category == 'Vegetarian' ? 'badge-delivered' : 'badge-warning'}" th:text="${item.category}">Cat</span></td>
+              <td style="color:var(--accent);font-weight:600;">Rs.<span th:text="${item.price}"></span></td>
+              <td><span class="badge" th:classappend="${item.available ? 'badge-delivered' : 'badge-cancelled'}" th:text="${item.available ? 'Available' : 'Unavailable'}"></span></td>
+              <td>
+                <form th:action="@{/restaurant/menu/item/{id}/delete(id=${item.foodId})}" method="post" style="display:inline;" onsubmit="return confirm('Remove this item?')">
+                  <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                  <button type="submit" class="btn btn-danger btn-sm">Remove</button>
+                </form>
+              </td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(menu.foodItems)}">
+              <td colspan="5" style="text-align:center;color:var(--text-muted);padding:2rem;">No items yet. Add your first item!</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Add Item Modal per menu -->
+    <div class="modal-overlay" th:id="'addItem-' + ${menu.menuId}" onclick="if(event.target===this)this.classList.remove('open')">
+      <div class="modal">
+        <div class="modal-header">
+          <div class="modal-title">Add Item to <span th:text="${menu.menuName}"></span></div>
+          <button class="modal-close" th:onclick="|document.getElementById('addItem-${menu.menuId}').classList.remove('open')|">x</button>
+        </div>
+        <form th:action="@{/restaurant/menu/{id}/add-item(id=${menu.menuId})}" method="post">
+          <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+          <div class="form-group">
+            <label class="form-label">Item Name</label>
+            <input type="text" name="name" class="form-control" placeholder="e.g. Paneer Tikka" required/>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Type</label>
+              <select name="type" class="form-control">
+                <option value="VEG">Vegetarian</option>
+                <option value="NON_VEG">Non-Vegetarian</option>
+                <option value="BEVERAGE">Beverage</option>
+                <option value="DESSERT">Dessert</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Price (Rs.)</label>
+              <input type="number" name="price" class="form-control" placeholder="0.00" step="0.01" min="1" required/>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Description</label>
+            <input type="text" name="description" class="form-control" placeholder="Brief description..."/>
+          </div>
+          <button type="submit" class="btn btn-primary btn-block">Add Item</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div th:if="${#lists.isEmpty(menus)}" class="empty-state">
+    <div class="empty-icon">&#127859;</div>
+    <h3>No menus yet</h3>
+    <p>Create your first menu to start adding food items.</p>
+  </div>
+</div>
+
+<!-- Create Menu Modal -->
+<div class="modal-overlay" id="createMenuModal" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Create New Menu</div>
+      <button class="modal-close" onclick="document.getElementById('createMenuModal').classList.remove('open')">x</button>
+    </div>
+    <form th:action="@{/restaurant/menu/create}" method="post">
+      <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+      <div class="form-group">
+        <label class="form-label">Menu Name</label>
+        <input type="text" name="menuName" class="form-control" placeholder="e.g. Starters, Main Course" required/>
+      </div>
+      <button type="submit" class="btn btn-primary btn-block">Create Menu</button>
+    </form>
+  </div>
+</div>
+</body>
+</html>
