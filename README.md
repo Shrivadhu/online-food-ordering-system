@@ -1,3 +1,101 @@
+# 🍔 Online Food Ordering System
+
+## 📌 Project Overview
+
+The **Online Food Ordering System** is a Java-based application that simulates the complete workflow of ordering food from a restaurant — starting from browsing menus to successful delivery.
+
+This project demonstrates real-world system design concepts including order processing, payment handling, restaurant interaction, and delivery management.
+
+---
+
+## 🚀 Features
+
+* 📱 Browse available restaurants
+* 🛒 Add food items to cart
+* 💳 Secure payment processing (Success/Failure handling)
+* 🧾 Order creation and tracking
+* 🍳 Restaurant order acceptance & food preparation
+* 🚚 Delivery assignment and tracking
+* 🔔 Customer notifications (Order status updates)
+
+---
+
+## 🏗️ System Workflow
+
+1. Customer opens the app and browses restaurants
+2. Selects items and places an order
+3. Payment is processed
+
+   * ✅ If successful → Order is created
+   * ❌ If failed → User is notified
+4. Restaurant receives and accepts/rejects order
+5. Food is prepared
+6. Delivery partner picks up and delivers order
+7. Customer receives final notification
+
+---
+
+## 🛠️ Tech Stack
+
+* **Language:** Java
+* **Build Tool:** Maven
+* **Database:** MySQL (if integrated)
+* **Architecture:** Layered / OOP-based design
+
+---
+
+## 📂 Project Structure
+
+```
+foodorder/
+│
+├── src/
+│   └── main/
+│       ├── java/        # Application source code
+│       └── resources/   # Config files
+│
+├── pom.xml              # Maven dependencies
+├── DESIGN_PATTERNS.md   # Design explanation
+└── README.md
+```
+
+---
+
+## ▶️ How to Run the Project
+
+### 1️⃣ Clone the repository
+
+```
+git clone <your-repo-url>
+cd foodorder
+```
+
+### 2️⃣ Build the project
+
+```
+mvn clean install
+```
+
+### 3️⃣ Run the application
+
+```
+mvn exec:java
+```
+
+*(or run the main class from your IDE)*
+
+---
+
+## 📘 Design Concepts Used
+
+* Object-Oriented Programming (OOP)
+* Separation of Concerns
+* Modular Design
+* (Optional) Design Patterns (see `DESIGN_PATTERNS.md`)
+
+---
+
+##
 
 🔹 1. Problem Domain
 Domain: e-Commerce (Food Ordering System)
